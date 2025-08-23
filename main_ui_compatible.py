@@ -239,8 +239,7 @@ def simulate_directory_tree(operations, output_path):
     tree = {}
     
     for op in operations:
-        # Handle both 'type' and 'link_type' keys for compatibility
-        op_type = op.get('type', op.get('link_type', 'move'))
+        op_type = op.get('type', 'move')
         
         if op_type in ['move', 'hardlink', 'symlink']:
             dest_path = op['destination']

@@ -47,13 +47,11 @@ def process_files_by_date(file_paths, output_path, dry_run=False, silent=False, 
         # Prepare new file path
         new_file_name = os.path.basename(file_path)
         new_file_path = os.path.join(dir_path, new_file_name)
-        # Decide whether to use hardlink or symlink
-        link_type = 'hardlink'  # Assume hardlink for now
         # Record the operation
         operation = {
             'source': file_path,
             'destination': new_file_path,
-            'link_type': link_type,
+            'type': 'move',
         }
         operations.append(operation)
     return operations
@@ -108,13 +106,11 @@ def process_files_by_type(file_paths, output_path, dry_run=False, silent=False, 
         # Prepare new file path
         new_file_name = os.path.basename(file_path)
         new_file_path = os.path.join(dir_path, new_file_name)
-        # Decide whether to use hardlink or symlink
-        link_type = 'hardlink'  # Assume hardlink for now
         # Record the operation
         operation = {
             'source': file_path,
             'destination': new_file_path,
-            'link_type': link_type,
+            'type': 'move',
         }
         operations.append(operation)
 
@@ -145,14 +141,11 @@ def compute_operations(data_list, new_path, renamed_files, processed_files):
             new_file_path = os.path.join(dir_path, new_file_name)
             counter += 1
 
-        # Decide whether to use hardlink or symlink
-        link_type = 'hardlink'  # Assume hardlink for now
-
         # Record the operation
         operation = {
             'source': file_path,
             'destination': new_file_path,
-            'link_type': link_type,
+            'type': 'move',
             'folder_name': folder_name,
             'new_file_name': new_file_name
         }
@@ -175,23 +168,35 @@ def execute_operations(operations, dry_run=False, silent=False, log_file=None):
         for operation in operations:
             source = operation['source']
             destination = operation['destination']
-            link_type = operation['link_type']
+            op_type = operation.get('type', 'move')
             dir_path = os.path.dirname(destination)
 
             if dry_run:
-                message = f"Dry run: would create {link_type} from '{source}' to '{destination}'"
+                message = f"Dry run: would {op_type} from '{source}' to '{destination}'"
             else:
                 # Ensure the directory exists before performing the operation
                 os.makedirs(dir_path, exist_ok=True)
 
                 try:
-                    if link_type == 'hardlink':
+                    if op_type == 'move':
+                        # For move operations, we'll copy then remove the original
+                        import shutil
+                        shutil.copy2(source, destination)
+                        os.remove(source)
+                        message = f"Moved '{source}' to '{destination}'"
+                    elif op_type == 'hardlink':
                         os.link(source, destination)
-                    else:
+                        message = f"Created hardlink from '{source}' to '{destination}'"
+                    elif op_type == 'symlink':
                         os.symlink(source, destination)
-                    message = f"Created {link_type} from '{source}' to '{destination}'"
+                        message = f"Created symlink from '{source}' to '{destination}'"
+                    else:
+                        # Default to copy
+                        import shutil
+                        shutil.copy2(source, destination)
+                        message = f"Copied '{source}' to '{destination}'"
                 except Exception as e:
-                    message = f"Error creating {link_type} from '{source}' to '{destination}': {e}"
+                    message = f"Error {op_type} from '{source}' to '{destination}': {e}"
 
             progress.advance(task)
 

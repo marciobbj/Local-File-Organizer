@@ -245,7 +245,7 @@ function renderTree(container, treeData, type) {
     container.innerHTML = '';
     
     const os = treeData.os || detectOS();
-    const osClass = os !== 'unknown' ? os : 'macos'; // Fallback para macOS
+            const osClass = os !== 'unknown' ? os : 'macos';
     
     if (type === 'current') {
         container.innerHTML = `<div class="tree-item folder ${osClass}">📁 ${treeData.name || 'Directory'}</div>`;
@@ -265,7 +265,7 @@ function renderTreeChildren(container, children, level) {
         const prefix = '│   '.repeat(level - 1) + (isLast ? '└── ' : '├── ');
         const icon = child.type === 'folder' ? '📁' : '📄';
         const os = child.os || detectOS();
-        const osClass = os !== 'unknown' ? os : 'macos'; // Fallback para macOS
+        const osClass = os !== 'unknown' ? os : 'macos';
         
         const treeItem = document.createElement('div');
         treeItem.className = `tree-item ${child.type} ${osClass}`;
@@ -320,8 +320,7 @@ async function handleProceed() {
         showLoading('Executing organization...');
         showProgress();
         
-        // Simulate progress during organization
-        simulateProgress();
+        
         
         // Execute real organization
         const result = await window.electronAPI.executeOrganization({
@@ -357,10 +356,27 @@ function handleNewOrganization() {
     showScreen('welcome-screen');
 }
 
-// Manipular abertura de pasta
-function handleOpenFolder() {
-    // Implementar abertura da pasta no explorador de arquivos
-    console.log('Abrindo pasta:', appState.outputPath);
+// Handle opening folder
+async function handleOpenFolder() {
+    if (!appState.outputPath) {
+        showError('No output path available');
+        return;
+    }
+
+    try {
+        const result = await window.electronAPI.openFolder({
+            folderPath: appState.outputPath
+        });
+
+        if (result.success) {
+            console.log('Folder opened successfully:', appState.outputPath);
+        } else {
+            showError(result.error || 'Failed to open folder');
+        }
+    } catch (error) {
+        console.error('Error opening folder:', error);
+        showError('Error opening folder: ' + error.message);
+    }
 }
 
         // Handle mode change
@@ -426,30 +442,11 @@ function hideProgress() {
     }
 }
 
-        // Simulate progress during organization
-function simulateProgress() {
-    const progressFill = document.getElementById('progress-fill');
-    const progressText = document.getElementById('progress-text');
-    
-    if (progressFill && progressText) {
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += Math.random() * 15;
-            if (progress > 90) progress = 90; // Don't reach 100% until completion
-            
-            progressFill.style.width = progress + '%';
-            progressText.textContent = Math.round(progress) + '%';
-            
-            if (progress >= 90) {
-                clearInterval(interval);
-            }
-        }, 200);
-    }
-}
+
 
 // Mostrar erro
 function showError(message) {
-    alert('Erro: ' + message);
+            alert('Error: ' + message);
 }
 
 // Formatar tamanho de arquivo
@@ -466,7 +463,7 @@ function formatDate(date) {
     if (typeof date === 'string') {
         date = new Date(date);
     }
-    return date.toLocaleDateString('pt-BR', {
+            return date.toLocaleDateString('en-US', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
