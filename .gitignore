@@ -24,3 +24,4 @@ operation_log.txt
 
 # Ignore node modules
 ui/node_modules/
+ui/package-lock.json
