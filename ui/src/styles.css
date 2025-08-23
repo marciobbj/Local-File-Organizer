@@ -13,6 +13,7 @@ body {
     overflow-x: auto;
     line-height: 1.6;
     min-width: 1200px;
+    overflow-x: auto;
 }
 
 /* Controle de telas */
@@ -382,7 +383,8 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 3rem 2rem;
-    min-width: 760px;
+    min-width: 900px;
+    overflow-x: auto;
 }
 
 .review-content {
@@ -400,6 +402,8 @@ body {
     align-items: stretch;
     min-height: 500px;
     justify-content: center;
+    overflow-x: auto;
+    min-width: 900px;
 }
 
 .current-structure,
@@ -414,6 +418,7 @@ body {
     height: 500px;
     min-height: 500px;
     max-height: 500px;
+    overflow: hidden;
 }
 
 .current-structure h3,
@@ -493,6 +498,9 @@ body {
     min-height: 0;
     overflow: auto;
     max-width: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    position: relative;
 }
 
 .tree-view {
@@ -502,15 +510,18 @@ body {
     color: #888888;
     white-space: nowrap;
     min-width: 0;
+    width: max-content;
+    min-width: 100%;
+    display: inline-block;
 }
 
 .tree-item {
     padding: 0.125rem 0;
     transition: background-color 0.2s ease;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
+    overflow: visible;
+    text-overflow: clip;
+    max-width: none;
 }
 
 .tree-item:hover {
@@ -863,9 +874,11 @@ body {
     }
     
     .comparison-section {
-        grid-template-columns: 350px;
+        grid-template-columns: 350px auto 350px;
         gap: 1rem;
         justify-content: center;
+        min-width: 800px;
+        overflow-x: auto;
     }
     
     .current-structure,
@@ -874,6 +887,7 @@ body {
         height: 400px;
         min-height: 400px;
         max-height: 400px;
+        overflow: hidden;
     }
     
     .arrow-separator {
