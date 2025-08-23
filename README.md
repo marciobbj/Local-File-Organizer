@@ -207,6 +207,60 @@ python main.py
 - **Customizing Prompts:**
   - You can adjust prompts in `data_processing.py` to change how metadata is generated.
 
+
+---
+
+## 🖥️ **Using the Electron User Interface**
+
+The Local File Organizer also includes a modern, intuitive graphical interface built with Electron that provides the same powerful organization capabilities with a user-friendly design.
+
+### **Quick Start Guide**
+
+#### **1. Launch the Application**
+```bash
+# Make the startup script executable (first time only)
+chmod +x start-ui.sh
+
+# Start the Electron interface
+./start-ui.sh
+```
+
+### **Prerequisites for UI**
+
+Before using the Electron interface, ensure you have:
+
+```bash
+# Node.js (version 16 or later)
+node --version
+
+# Install UI dependencies
+cd ui && npm install
+```
+
+### **Troubleshooting Common Issues**
+
+#### **Startup Problems**
+```bash
+# Check Node.js installation
+node --version
+
+# Verify dependencies
+cd ui && npm install
+
+# Check Python environment
+python --version
+pip list | grep -E "(torch|transformers|pillow)"
+```
+
+### **CLI vs UI**
+
+Both interfaces provide the same core functionality:
+
+- **CLI (`main.py`)**: Command-line interface for automation and scripting
+- **UI (`start-ui.sh`)**: Graphical interface for interactive use and visual feedback
+
+Choose the interface that best fits your workflow and preferences!
+
 ## License
 
 This project is dual-licensed under the MIT License and Apache 2.0 License. You may choose which license you prefer to use for this project.
