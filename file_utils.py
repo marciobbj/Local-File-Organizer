@@ -108,9 +108,11 @@ def display_directory_tree(path):
 def collect_file_paths(base_path, recursive=True):
     """Collect all file paths from the base directory or single file, excluding hidden files."""
     if os.path.isfile(base_path):
-        return [base_path]
+        return [base_path], []
     else:
         file_paths = []
+        ignored_folders = []
+        
         if recursive:
             # Recursive search: scan all subdirectories
             for root, _, files in os.walk(base_path):
@@ -124,7 +126,11 @@ def collect_file_paths(base_path, recursive=True):
                     item_path = os.path.join(base_path, item)
                     if os.path.isfile(item_path):
                         file_paths.append(item_path)
-        return file_paths
+                    elif os.path.isdir(item_path):
+                        # Collect ignored folders for later inclusion
+                        ignored_folders.append(item_path)
+        
+        return file_paths, ignored_folders
 
 def separate_files_by_type(file_paths):
     """Separate files into images and text files based on their extensions."""

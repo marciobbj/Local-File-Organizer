@@ -247,7 +247,7 @@ def process_files_with_ai(file_paths, output_path, text_model, text_tokenizer, i
     
     return operations
 
-def simulate_directory_tree(operations, output_path):
+def simulate_directory_tree(operations, output_path, ignored_folders=None):
     """Simulate the directory tree that would be created."""
     tree = {}
     
@@ -281,6 +281,23 @@ def simulate_directory_tree(operations, output_path):
                 
             tree[dir_path].append(file_info)
     
+    # Add ignored folders to the tree
+    if ignored_folders:
+        for folder_path in ignored_folders:
+            folder_name = os.path.basename(folder_path)
+            # Create a special entry for ignored folders
+            ignored_folder_info = {
+                'name': folder_name,
+                'source': folder_path,
+                'type': 'ignored_folder',
+                'size': 0  # We don't calculate size for ignored folders
+            }
+            
+            # Add to root level
+            if '.' not in tree:
+                tree['.'] = []
+            tree['.'].append(ignored_folder_info)
+    
     return tree
 
 def print_simulated_tree(tree):
@@ -293,7 +310,10 @@ def print_simulated_tree(tree):
         
         for file_info in sorted(files, key=lambda x: x['name'] if isinstance(x, dict) else x):
             if isinstance(file_info, dict):
-                print(f"  {file_info['name']}")
+                if file_info.get('type') == 'ignored_folder':
+                    print(f"  {file_info['name']}/ (ignored - will be moved as-is)")
+                else:
+                    print(f"  {file_info['name']}")
             else:
                 print(f"  {file_info}")
 
@@ -321,7 +341,7 @@ def main():
     
     # Collect file paths with recursive option
     recursive = args.recursive.lower() == 'true'
-    file_paths = collect_file_paths(args.input, recursive=recursive)
+    file_paths, ignored_folders = collect_file_paths(args.input, recursive=recursive)
     
     if args.json_output:
         # Generate structure preview
@@ -334,7 +354,7 @@ def main():
             operations = process_files_by_type(file_paths, args.output, dry_run=True, silent=True)
         
         # Create tree structure for UI
-        tree = simulate_directory_tree(operations, args.output)
+        tree = simulate_directory_tree(operations, args.output, ignored_folders)
         
         # Detect operating system
         detected_os = detect_operating_system()
@@ -349,16 +369,27 @@ def main():
         
         for directory, files in tree.items():
             if directory == '.':
-                # Root level files
+                # Root level files and ignored folders
                 for file_info in files:
                     if isinstance(file_info, dict):
-                        ui_tree['children'].append({
-                            'name': file_info['name'],
-                            'type': 'file',
-                            'os': detected_os,
-                            'size': file_info.get('size', 0),
-                            'modified': file_info.get('modified')
-                        })
+                        if file_info.get('type') == 'ignored_folder':
+                            # Add ignored folder as a special folder type
+                            ui_tree['children'].append({
+                                'name': file_info['name'],
+                                'type': 'ignored_folder',
+                                'os': detected_os,
+                                'size': 0,
+                                'source': file_info.get('source')
+                            })
+                        else:
+                            # Regular file
+                            ui_tree['children'].append({
+                                'name': file_info['name'],
+                                'type': 'file',
+                                'os': detected_os,
+                                'size': file_info.get('size', 0),
+                                'modified': file_info.get('modified')
+                            })
                     else:
                         # Backward compatibility for old format
                         ui_tree['children'].append({

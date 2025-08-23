@@ -490,6 +490,12 @@ body {
     font-weight: 600;
 }
 
+.tree-item.ignored-folder {
+    color: #ffa726;
+    font-style: italic;
+    opacity: 0.8;
+}
+
 .tree-item.file {
     font-weight: 400;
 }

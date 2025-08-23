@@ -285,12 +285,23 @@ function renderTreeChildren(container, children, level) {
     children.forEach((child, index) => {
         const isLast = index === children.length - 1;
         const prefix = '│   '.repeat(level - 1) + (isLast ? '└── ' : '├── ');
-        const icon = child.type === 'folder' ? '📁' : '📄';
+        let icon;
+        if (child.type === 'folder') {
+            icon = '📁';
+        } else if (child.type === 'ignored_folder') {
+            icon = '📁'; // Same icon but will be styled differently
+        } else {
+            icon = '📄';
+        }
         const os = child.os || detectOS();
         const osClass = os !== 'unknown' ? os : 'macos';
         
         const treeItem = document.createElement('div');
-        treeItem.className = `tree-item ${child.type} ${osClass}`;
+        let className = `tree-item ${child.type} ${osClass}`;
+        if (child.type === 'ignored_folder') {
+            className += ' ignored-folder';
+        }
+        treeItem.className = className;
         
         // Add extra information for files
         let extraInfo = '';
@@ -551,6 +562,9 @@ function calculateStats(tree) {
             if (node.children) {
                 node.children.forEach(traverse);
             }
+        } else if (node.type === 'ignored_folder') {
+            // Count ignored folders but don't include their size
+            folderCount++;
         } else if (node.type === 'file') {
             fileCount++;
             if (node.size) {
