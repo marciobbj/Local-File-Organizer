@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local File Organizer</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Tela 1: Tela de Abertura -->
+    <div id="welcome-screen" class="screen active">
+        <div class="welcome-container">
+            <div class="logo-section">
+                <i class="fas fa-folder-tree logo-icon"></i>
+                <h1 class="app-title">Local File Organizer</h1>
+                <p class="app-subtitle">Organize seus arquivos de forma inteligente</p>
+            </div>
+            
+            <div class="action-section">
+                <button id="select-directory-btn" class="primary-btn">
+                    <i class="fas fa-folder-open"></i>
+                    Organizar Diretório
+                </button>
+            </div>
+            
+            <div class="features-section">
+                <div class="feature-item">
+                    <i class="fas fa-brain"></i>
+                    <span>Organização por IA</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Organização por Data</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Organização por Tipo</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela 2: Seleção do Tipo de Organização -->
+    <div id="mode-selection-screen" class="screen">
+        <div class="mode-container">
+            <div class="header">
+                <button class="back-btn" onclick="showScreen('welcome-screen')">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h2>Escolha o Tipo de Organização</h2>
+            </div>
+            
+            <div class="selected-path">
+                <i class="fas fa-folder"></i>
+                <span id="selected-path-text"></span>
+            </div>
+            
+            <div class="mode-options">
+                <div class="mode-option" data-mode="ai_content">
+                    <div class="mode-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="mode-content">
+                        <h3>By Content (AI-powered)</h3>
+                        <p>Organiza arquivos usando inteligência artificial para analisar o conteúdo e criar uma estrutura inteligente</p>
+                    </div>
+                    <div class="mode-check">
+                        <i class="fas fa-check"></i>
+                    </div>
+                </div>
+                
+                <div class="mode-option" data-mode="date">
+                    <div class="mode-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="mode-content">
+                        <h3>By Date</h3>
+                        <p>Organiza arquivos por data de modificação, criando pastas por ano e mês</p>
+                    </div>
+                    <div class="mode-check">
+                        <i class="fas fa-check"></i>
+                    </div>
+                </div>
+                
+                <div class="mode-option" data-mode="type">
+                    <div class="mode-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="mode-content">
+                        <h3>By Type</h3>
+                        <p>Organiza arquivos por tipo de extensão, separando em categorias como imagens, documentos, etc.</p>
+                    </div>
+                    <div class="mode-check">
+                        <i class="fas fa-check"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mode-actions">
+                <button id="continue-btn" class="primary-btn" disabled>
+                    Continuar
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela 3: Revisão e Confirmação -->
+    <div id="review-screen" class="screen">
+        <div class="review-container">
+            <div class="header">
+                <button class="back-btn" onclick="showScreen('mode-selection-screen')">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h2>Revisar Organização</h2>
+            </div>
+            
+            <div class="review-content">
+                            <div class="comparison-section">
+                <div class="current-structure">
+                    <h3>Estrutura Atual</h3>
+                    <div class="os-indicator" id="current-os-indicator">
+                        <i class="fas fa-desktop"></i>
+                        <span>Sistema: <span id="current-os-text">Detectando...</span></span>
+                    </div>
+                    <div class="tree-container">
+                        <div id="current-tree" class="tree-view"></div>
+                    </div>
+                </div>
+                
+                <div class="arrow-separator">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+                
+                <div class="proposed-structure">
+                    <h3>Estrutura Proposta</h3>
+                    <div class="os-indicator" id="proposed-os-indicator">
+                        <i class="fas fa-desktop"></i>
+                        <span>Sistema: <span id="proposed-os-text">Detectando...</span></span>
+                    </div>
+                    <div class="tree-container">
+                        <div id="proposed-tree" class="tree-view"></div>
+                    </div>
+                </div>
+            </div>
+                
+                <div class="mode-changer">
+                    <label for="mode-select">Alterar modo:</label>
+                    <select id="mode-select">
+                        <option value="ai_content">By Content (AI-powered)</option>
+                        <option value="date">By Date</option>
+                        <option value="type">By Type</option>
+                    </select>
+                    <button id="refresh-btn" class="secondary-btn">
+                        <i class="fas fa-sync-alt"></i>
+                        Atualizar
+                    </button>
+                </div>
+                
+                <div class="stats-section">
+                    <div class="stat-item">
+                        <i class="fas fa-folder"></i>
+                        <span>Pastas: <strong id="folder-count">0</strong></span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-file"></i>
+                        <span>Arquivos: <strong id="file-count">0</strong></span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-hdd"></i>
+                        <span>Tamanho: <strong id="total-size">0 B</strong></span>
+                    </div>
+                </div>
+                
+                <div class="review-actions">
+                    <button id="cancel-btn" class="danger-btn">
+                        <i class="fas fa-times"></i>
+                        Cancelar
+                    </button>
+                    <button id="proceed-btn" class="primary-btn">
+                        <i class="fas fa-check"></i>
+                        Continuar com as Mudanças
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela 4: Confirmação de Sucesso -->
+    <div id="success-screen" class="screen">
+        <div class="success-container">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            
+            <h2>Organização Concluída com Sucesso!</h2>
+            
+            <div class="success-details">
+                <p>Seus arquivos foram organizados conforme solicitado.</p>
+                <div class="output-info">
+                    <i class="fas fa-folder-open"></i>
+                    <span>Arquivos organizados em: <strong id="output-path-text"></strong></span>
+                </div>
+            </div>
+            
+            <div class="success-actions">
+                <button id="new-organization-btn" class="primary-btn">
+                    <i class="fas fa-plus"></i>
+                    Nova Organização
+                </button>
+                <button id="open-folder-btn" class="secondary-btn">
+                    <i class="fas fa-external-link-alt"></i>
+                    Abrir Pasta
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p id="loading-text">Processando...</p>
+            <div class="progress-container hidden" id="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <p class="progress-text" id="progress-text">0%</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>
