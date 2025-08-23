@@ -44,7 +44,7 @@ app.on('activate', () => {
 });
 
 // Function to scan directory and create tree
-function scanDirectory(dirPath, maxDepth = 3, currentDepth = 0) {
+function scanDirectory(dirPath, maxDepth = 3, currentDepth = 0, recursive = true) {
   try {
     if (currentDepth > maxDepth) {
       return null;
@@ -67,10 +67,14 @@ function scanDirectory(dirPath, maxDepth = 3, currentDepth = 0) {
           const stat = fs.statSync(fullPath);
           
           if (stat.isDirectory()) {
-            const childTree = scanDirectory(fullPath, maxDepth, currentDepth + 1);
-            if (childTree) {
-              children.push(childTree);
+            // Only scan subdirectories if recursive search is enabled
+            if (recursive) {
+              const childTree = scanDirectory(fullPath, maxDepth, currentDepth + 1, recursive);
+              if (childTree) {
+                children.push(childTree);
+              }
             }
+            // If not recursive, skip subdirectories entirely
           } else if (stat.isFile()) {
             children.push({
               name: item,
@@ -132,10 +136,10 @@ ipcMain.handle('select-directory', async () => {
   return null;
 });
 
-ipcMain.handle('scan-directory', async (event, { dirPath }) => {
+ipcMain.handle('scan-directory', async (event, { dirPath, recursive = true }) => {
   return new Promise((resolve, reject) => {
     try {
-      const tree = scanDirectory(dirPath);
+      const tree = scanDirectory(dirPath, 3, 0, recursive);
       if (tree) {
         resolve({
           success: true,
@@ -151,7 +155,7 @@ ipcMain.handle('scan-directory', async (event, { dirPath }) => {
   });
 });
 
-ipcMain.handle('organize-files', async (event, { inputPath, outputPath, mode, dryRun = true }) => {
+ipcMain.handle('organize-files', async (event, { inputPath, outputPath, mode, dryRun = true, recursive = true }) => {
   return new Promise((resolve, reject) => {
     try {
       console.log('Generating organized structure using Python CLI...');
@@ -177,7 +181,8 @@ ipcMain.handle('organize-files', async (event, { inputPath, outputPath, mode, dr
         '--output', outputPath,
         '--mode', mode,
         '--dry-run', 'true',
-        '--json-output'
+        '--json-output',
+        '--recursive', recursive.toString()
       ];
       
       console.log('Executing Python command (dry-run):', pythonCmd, args.join(' '));
@@ -271,7 +276,7 @@ ipcMain.handle('organize-files', async (event, { inputPath, outputPath, mode, dr
   });
 });
 
-ipcMain.handle('execute-organization', async (event, { inputPath, outputPath, mode }) => {
+ipcMain.handle('execute-organization', async (event, { inputPath, outputPath, mode, recursive = true }) => {
   return new Promise((resolve, reject) => {
     try {
       console.log('Starting organization using Python CLI...');
@@ -296,7 +301,8 @@ ipcMain.handle('execute-organization', async (event, { inputPath, outputPath, mo
         '--input', inputPath,
         '--output', outputPath,
         '--mode', mode,
-        '--dry-run', 'false'
+        '--dry-run', 'false',
+        '--recursive', recursive.toString()
       ];
       
       console.log('Executing command:', pythonCmd, args.join(' '));

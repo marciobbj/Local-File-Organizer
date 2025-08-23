@@ -105,16 +105,25 @@ def display_directory_tree(path):
     else:
         print(os.path.abspath(path))
 
-def collect_file_paths(base_path):
+def collect_file_paths(base_path, recursive=True):
     """Collect all file paths from the base directory or single file, excluding hidden files."""
     if os.path.isfile(base_path):
         return [base_path]
     else:
         file_paths = []
-        for root, _, files in os.walk(base_path):
-            for file in files:
-                if not file.startswith('.'):  # Exclude hidden files
-                    file_paths.append(os.path.join(root, file))
+        if recursive:
+            # Recursive search: scan all subdirectories
+            for root, _, files in os.walk(base_path):
+                for file in files:
+                    if not file.startswith('.'):  # Exclude hidden files
+                        file_paths.append(os.path.join(root, file))
+        else:
+            # Simple search: only scan the root directory
+            for item in os.listdir(base_path):
+                if not item.startswith('.'):  # Exclude hidden files
+                    item_path = os.path.join(base_path, item)
+                    if os.path.isfile(item_path):
+                        file_paths.append(item_path)
         return file_paths
 
 def separate_files_by_type(file_paths):

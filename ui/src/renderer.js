@@ -4,7 +4,8 @@ let appState = {
     selectedMode: null,
     currentTree: null,
     proposedTree: null,
-    outputPath: null
+    outputPath: null,
+    recursiveSearch: true
 };
 
 // Elementos DOM
@@ -33,7 +34,8 @@ const elements = {
     },
     modeOptions: document.querySelectorAll('.mode-option'),
     modeSelect: document.getElementById('mode-select'),
-    loadingOverlay: document.getElementById('loading-overlay')
+    loadingOverlay: document.getElementById('loading-overlay'),
+    recursiveSearchToggle: document.getElementById('recursive-search-toggle')
 };
 
 // Application initialization
@@ -73,6 +75,9 @@ function initializeEventListeners() {
     
     // Mode change in review screen
     elements.modeSelect.addEventListener('change', handleModeChange);
+    
+    // Recursive search toggle
+    elements.recursiveSearchToggle.addEventListener('change', handleRecursiveSearchToggle);
 }
 
 // Initialize progress listener
@@ -168,9 +173,10 @@ async function generateCurrentTree() {
     try {
         showLoading('Scanning directory...');
         
-        // Scan real directory
+        // Scan real directory with recursive search option
         const result = await window.electronAPI.scanDirectory({
-            dirPath: appState.selectedDirectory
+            dirPath: appState.selectedDirectory,
+            recursive: appState.recursiveSearch
         });
         
         hideLoading();
@@ -207,7 +213,8 @@ async function generateProposedTree() {
             inputPath: appState.selectedDirectory,
             outputPath: outputPath,
             mode: appState.selectedMode,
-            dryRun: true
+            dryRun: true,
+            recursive: appState.recursiveSearch
         });
         
         hideLoading();
@@ -341,7 +348,8 @@ async function handleProceed() {
         const result = await window.electronAPI.executeOrganization({
             inputPath: appState.selectedDirectory,
             outputPath: appState.outputPath,
-            mode: appState.selectedMode
+            mode: appState.selectedMode,
+            recursive: appState.recursiveSearch
         });
         
         if (result.success) {
@@ -356,7 +364,7 @@ async function handleProceed() {
             
             showScreen('success-screen');
         } else {
-            throw new Error(result.error || 'Erro desconhecido');
+            throw new Error(result.error || 'Unknown error');
         }
     } catch (error) {
         hideLoading();
@@ -399,6 +407,26 @@ function handleModeChange() {
     appState.selectedMode = elements.modeSelect.value;
 }
 
+// Handle recursive search toggle
+function handleRecursiveSearchToggle() {
+    appState.recursiveSearch = elements.recursiveSearchToggle.checked;
+    
+    // Update description based on toggle state
+    const description = elements.recursiveSearchToggle.parentElement.querySelector('.toggle-description');
+    if (description) {
+        if (appState.recursiveSearch) {
+            description.textContent = 'Search in all subfolders';
+        } else {
+            description.textContent = 'Search only in root folder';
+        }
+    }
+    
+    // If we already have a current tree, regenerate it with new search depth
+    if (appState.currentTree) {
+        generateCurrentTree();
+    }
+}
+
 // Reset application state
 function resetAppState() {
     appState = {
@@ -406,7 +434,8 @@ function resetAppState() {
         selectedMode: null,
         currentTree: null,
         proposedTree: null,
-        outputPath: null
+        outputPath: null,
+        recursiveSearch: true
     };
     
     // Resetar UI
@@ -424,6 +453,12 @@ function resetAppState() {
     });
     
     elements.modeSelect.value = 'ai_content';
+    
+    // Reset recursive search toggle
+    if (elements.recursiveSearchToggle) {
+        elements.recursiveSearchToggle.checked = true;
+        appState.recursiveSearch = true;
+    }
     
     // Esconder barra de progresso
     hideProgress();

@@ -58,7 +58,7 @@ def initialize_models():
             AutoTokenizer, 
             AutoModelForCausalLM,
             AutoProcessor,
-            AutoModelForVision2Seq
+            AutoModelForImageTextToText
         )
         
         text_model = None
@@ -79,8 +79,8 @@ def initialize_models():
         print("Loading image model...")
         try:
             model_name = "Salesforce/blip-image-captioning-base"
-            image_processor = AutoProcessor.from_pretrained(model_name)
-            image_model = AutoModelForVision2Seq.from_pretrained(model_name)
+            image_processor = AutoProcessor.from_pretrained(model_name, use_fast=True)
+            image_model = AutoModelForImageTextToText.from_pretrained(model_name)
             print("✅ Image model loaded successfully!")
         except Exception as e:
             print(f"❌ Error loading image model: {e}")
@@ -284,6 +284,7 @@ def main():
     parser.add_argument('--mode', required=True, choices=['ai_content', 'date', 'type'], help='Organization mode')
     parser.add_argument('--dry-run', type=str, default='true', help='Dry run mode (true/false)')
     parser.add_argument('--json-output', action='store_true', help='Output results as JSON')
+    parser.add_argument('--recursive', type=str, default='true', help='Recursive search (true/false)')
     
     args = parser.parse_args()
     
@@ -298,8 +299,9 @@ def main():
     # Create output directory if it doesn't exist
     os.makedirs(args.output, exist_ok=True)
     
-    # Collect file paths
-    file_paths = collect_file_paths(args.input)
+    # Collect file paths with recursive option
+    recursive = args.recursive.lower() == 'true'
+    file_paths = collect_file_paths(args.input, recursive=recursive)
     
     if args.json_output:
         # Generate structure preview
