@@ -1,4 +1,4 @@
-/* Reset e configurações básicas */
+/* Reset and basic settings */
 * {
     margin: 0;
     padding: 0;
@@ -127,7 +127,7 @@ body {
     text-align: center;
 }
 
-/* Tela 2: Seleção do Tipo de Organização */
+/* Screen 2: Organization Type Selection */
 .mode-container {
     max-width: 1200px;
     margin: 0 auto;
@@ -273,7 +273,7 @@ body {
     transform: none !important;
 }
 
-/* Tela 3: Revisão e Confirmação */
+/* Screen 3: Review and Confirmation */
 .review-container {
     max-width: 1200px;
     margin: 0 auto;
@@ -532,7 +532,7 @@ body {
     transform: translateY(-1px);
 }
 
-/* Tela 4: Confirmação de Sucesso */
+/* Screen 4: Success Confirmation */
 .success-container {
     max-width: 600px;
     margin: 0 auto;
@@ -658,7 +658,7 @@ body {
     margin: 0;
 }
 
-/* Animações */
+/* Animations */
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }

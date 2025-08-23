@@ -49,7 +49,7 @@ app.on('activate', () => {
   }
 });
 
-// Função para escanear diretório e criar árvore
+// Function to scan directory and create tree
 function scanDirectory(dirPath, maxDepth = 3, currentDepth = 0) {
   try {
     const stats = fs.statSync(dirPath);
@@ -60,10 +60,10 @@ function scanDirectory(dirPath, maxDepth = 3, currentDepth = 0) {
     const items = fs.readdirSync(dirPath);
     const children = [];
     
-            // Limitar profundidade para evitar árvores muito grandes
+            // Limit depth to avoid very large trees
         if (currentDepth < maxDepth) {
             for (const item of items) {
-                // Ignorar arquivos ocultos e diretórios do sistema
+                // Ignore hidden files and system directories
                 if (item.startsWith('.') || item === 'node_modules' || item === '.git') {
                     continue;
                 }
@@ -89,8 +89,8 @@ function scanDirectory(dirPath, maxDepth = 3, currentDepth = 0) {
                         });
                     }
                 } catch (err) {
-                    // Ignorar arquivos que não podem ser lidos
-                    console.log(`Erro ao ler item: ${fullPath}`, err.message);
+                    // Ignore files that cannot be read
+                    console.log(`Error reading item: ${fullPath}`, err.message);
                 }
             }
         }
@@ -105,35 +105,36 @@ function scanDirectory(dirPath, maxDepth = 3, currentDepth = 0) {
         if (a.type !== b.type) {
           return a.type === 'folder' ? -1 : 1;
         }
-        // Ordem alfabética
+        // Alphabetical order
         return a.name.localeCompare(b.name);
       })
     };
   } catch (err) {
-    console.error(`Erro ao escanear diretório: ${dirPath}`, err.message);
+            console.error(`Error scanning directory: ${dirPath}`, err.message);
     return null;
   }
 }
 
-// Função para obter sistema operacional
+// Function to get operating system
 function getOS() {
     const platform = os.platform();
+    console.log('Operating system: ', platform);
     if (platform === 'win32') return 'windows';
     if (platform === 'darwin') return 'macos';
     if (platform === 'linux') return 'linux';
     return 'unknown';
 }
 
-// Função para gerar estrutura organizada baseada no modo
+// Function to generate organized structure based on mode
 function generateOrganizedStructure(inputTree, mode, os) {
     const organizedTree = {
-        name: '', // Nome vazio para não criar diretório extra
+        name: '', // Empty name to avoid creating extra directory
         type: 'folder',
         os: os,
         children: []
     };
 
-    // Função para coletar todos os arquivos da árvore
+    // Function to collect all files from the tree
     function collectFiles(node, files = []) {
         if (node.type === 'file') {
             files.push({
@@ -153,7 +154,7 @@ function generateOrganizedStructure(inputTree, mode, os) {
     const allFiles = collectFiles(inputTree);
 
     if (mode === 'ai_content') {
-        // Organização por IA (simulada)
+        // AI organization (simulated)
         organizedTree.children = [
             {
                 name: 'Documents',
@@ -205,7 +206,7 @@ function generateOrganizedStructure(inputTree, mode, os) {
             }
         ];
     } else if (mode === 'date') {
-        // Organização por data
+        // Date organization
         const filesByDate = {};
         allFiles.forEach(file => {
             if (file.modified) {
@@ -245,7 +246,7 @@ function generateOrganizedStructure(inputTree, mode, os) {
             organizedTree.children.push(yearFolder);
         });
     } else if (mode === 'type') {
-        // Organização por tipo
+        // Type organization
         const filesByType = {};
         allFiles.forEach(file => {
             const ext = path.extname(file.name).toLowerCase();
@@ -284,7 +285,7 @@ function generateOrganizedStructure(inputTree, mode, os) {
         });
     }
 
-    // Remover pastas vazias
+            // Remove empty folders
     organizedTree.children = organizedTree.children.filter(folder => 
         folder.children && folder.children.length > 0
     );
@@ -292,15 +293,15 @@ function generateOrganizedStructure(inputTree, mode, os) {
     return organizedTree;
 }
 
-// Função removida - agora usa Python CLI
+  // Function removed - now uses Python CLI
+  
+  // Function removed - now uses Python CLI
 
-// Função removida - agora usa Python CLI
-
-// Função de fallback para gerar estrutura quando Python falha
+// Fallback function to generate structure when Python fails
 function generateFallbackStructure(inputPath, mode) {
     const os = getOS();
     
-    // Estrutura básica de fallback
+            // Basic fallback structure
     const fallbackTree = {
         name: '',
         type: 'folder',
@@ -359,13 +360,13 @@ function generateFallbackStructure(inputPath, mode) {
     return fallbackTree;
 }
 
-// Função removida - agora usa Python CLI
+// Function removed - now uses Python CLI
 
-// IPC handlers para comunicação com o renderer
+// IPC handlers for communication with renderer
 ipcMain.handle('select-directory', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: ['openDirectory'],
-    title: 'Selecionar diretório para organizar'
+            title: 'Select directory to organize'
   });
   
   if (!result.canceled) {
@@ -382,13 +383,13 @@ ipcMain.handle('scan-directory', async (event, { dirPath }) => {
         resolve({
           success: true,
           tree: tree,
-          message: 'Diretório escaneado com sucesso'
+          message: 'Directory scanned successfully'
         });
       } else {
-        resolve({ success: false, error: 'Não foi possível escanear o diretório' });
+        resolve({ success: false, error: 'Could not scan the directory' });
       }
     } catch (error) {
-      resolve({ success: false, error: 'Erro ao escanear diretório: ' + error.message });
+              resolve({ success: false, error: 'Error scanning directory: ' + error.message });
     }
   });
 });
@@ -397,7 +398,7 @@ ipcMain.handle('organize-files', async (event, { inputPath, outputPath, mode, dr
   return new Promise((resolve, reject) => {
     try {
       console.log('Gerando estrutura proposta usando Python CLI...');
-      console.log('Diretório de entrada:', inputPath);
+              console.log('Input directory:', inputPath);
       console.log('Modo:', mode);
       
       // Executar o comando Python em modo dry-run para obter a estrutura proposta
@@ -408,7 +409,7 @@ ipcMain.handle('organize-files', async (event, { inputPath, outputPath, mode, dr
       
       // Argumentos para o script Python (modo dry-run)
       const args = [
-        path.join(__dirname, '..', '..', 'main_cli.py'),
+        path.join(__dirname, '..', '..', 'main_ui_compatible.py'),
         '--input', inputPath,
         '--output', outputPath,
         '--mode', mode,
@@ -437,11 +438,11 @@ ipcMain.handle('organize-files', async (event, { inputPath, outputPath, mode, dr
       });
       
       pythonProcess.on('close', (code) => {
-        console.log(`Processo Python finalizado com código: ${code}`);
+        console.log(`Python process finished with code: ${code}`);
         
         if (code === 0) {
           try {
-            // Tentar fazer parse do JSON de saída
+            // Try to parse the output JSON
             const lines = stdout.trim().split('\n');
             const lastLine = lines[lines.length - 1];
             
@@ -450,51 +451,51 @@ ipcMain.handle('organize-files', async (event, { inputPath, outputPath, mode, dr
               resolve({
                 success: true,
                 tree: result.tree || result.proposedStructure,
-                message: 'Estrutura organizada gerada com sucesso usando Python CLI'
+                message: 'Organized structure generated successfully using Python CLI'
               });
             } else {
-              // Fallback: gerar estrutura simulada se não houver JSON
+              // Fallback: generate simulated structure if there's no JSON
               const fallbackTree = generateFallbackStructure(inputPath, mode);
               resolve({
                 success: true,
                 tree: fallbackTree,
-                message: 'Estrutura organizada gerada (fallback)'
+                message: 'Organized structure generated (fallback)'
               });
             }
           } catch (parseError) {
-            console.log('Erro ao fazer parse do JSON, usando fallback:', parseError.message);
+            console.log('Error parsing JSON, using fallback:', parseError.message);
             const fallbackTree = generateFallbackStructure(inputPath, mode);
             resolve({
               success: true,
               tree: fallbackTree,
-              message: 'Estrutura organizada gerada (fallback)'
+              message: 'Organized structure generated (fallback)'
             });
           }
         } else {
-          // Se o Python falhar, usar estrutura simulada
-          console.log('Python falhou, usando estrutura simulada');
+          // If Python fails, use simulated structure
+          console.log('Python failed, using simulated structure');
           const fallbackTree = generateFallbackStructure(inputPath, mode);
           resolve({
             success: true,
             tree: fallbackTree,
-            message: 'Estrutura organizada gerada (fallback)'
+            message: 'Organized structure generated (fallback)'
           });
         }
       });
       
       pythonProcess.on('error', (error) => {
-        console.error('Erro ao executar Python:', error);
-        // Usar estrutura simulada em caso de erro
+        console.error('Error executing Python:', error);
+        // Use simulated structure in case of error
         const fallbackTree = generateFallbackStructure(inputPath, mode);
         resolve({
           success: true,
           tree: fallbackTree,
-          message: 'Estrutura organizada gerada (fallback)'
+          message: 'Organized structure generated (fallback)'
         });
       });
       
     } catch (error) {
-      resolve({ success: false, error: 'Erro ao gerar estrutura organizada: ' + error.message });
+              resolve({ success: false, error: 'Error generating organized structure: ' + error.message });
     }
   });
 });
@@ -502,12 +503,12 @@ ipcMain.handle('organize-files', async (event, { inputPath, outputPath, mode, dr
 ipcMain.handle('execute-organization', async (event, { inputPath, outputPath, mode }) => {
   return new Promise((resolve, reject) => {
     try {
-      console.log('Iniciando organização usando Python CLI...');
-      console.log('Diretório de entrada:', inputPath);
-      console.log('Diretório de saída:', outputPath);
-      console.log('Modo:', mode);
+      console.log('Starting organization using Python CLI...');
+      console.log('Input directory:', inputPath);
+      console.log('Output directory:', outputPath);
+      console.log('Mode:', mode);
       
-      // Criar diretório de saída se não existir
+      // Create output directory if it doesn't exist
       if (!fs.existsSync(outputPath)) {
         fs.mkdirSync(outputPath, { recursive: true });
       }
@@ -520,14 +521,14 @@ ipcMain.handle('execute-organization', async (event, { inputPath, outputPath, mo
       
       // Argumentos para o script Python
       const args = [
-        path.join(__dirname, '..', '..', 'main_cli.py'),
+        path.join(__dirname, '..', '..', 'main_ui_compatible.py'),
         '--input', inputPath,
         '--output', outputPath,
         '--mode', mode,
         '--dry-run', 'false'
       ];
       
-      console.log('Executando comando:', pythonCmd, args.join(' '));
+      console.log('Executing command:', pythonCmd, args.join(' '));
       
       const pythonProcess = spawn(pythonCmd, args, {
         cwd: path.join(__dirname, '..', '..'),
@@ -548,33 +549,33 @@ ipcMain.handle('execute-organization', async (event, { inputPath, outputPath, mo
       });
       
       pythonProcess.on('close', (code) => {
-        console.log(`Processo Python finalizado com código: ${code}`);
+        console.log(`Python process finished with code: ${code}`);
         
         if (code === 0) {
           resolve({
             success: true,
-            message: 'Organização executada com sucesso usando Python CLI!',
+            message: 'Organization executed successfully using Python CLI!',
             outputPath: outputPath,
             pythonOutput: stdout
           });
         } else {
           resolve({ 
             success: false, 
-            error: `Erro no Python CLI (código ${code}): ${stderr || 'Erro desconhecido'}` 
+            error: `Error in Python CLI (code ${code}): ${stderr || 'Unknown error'}` 
           });
         }
       });
       
       pythonProcess.on('error', (error) => {
-        console.error('Erro ao executar Python:', error);
+        console.error('Error executing Python:', error);
         resolve({ 
           success: false, 
-          error: `Erro ao executar Python: ${error.message}` 
+          error: `Error executing Python: ${error.message}` 
         });
       });
       
     } catch (error) {
-      resolve({ success: false, error: 'Erro ao executar organização: ' + error.message });
+              resolve({ success: false, error: 'Error executing organization: ' + error.message });
     }
   });
 });

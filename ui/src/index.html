@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,47 +8,47 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Tela 1: Tela de Abertura -->
+    <!-- Screen 1: Welcome Screen -->
     <div id="welcome-screen" class="screen active">
         <div class="welcome-container">
             <div class="logo-section">
                 <i class="fas fa-folder-tree logo-icon"></i>
                 <h1 class="app-title">Local File Organizer</h1>
-                <p class="app-subtitle">Organize seus arquivos de forma inteligente</p>
+                <p class="app-subtitle">Organize your files intelligently</p>
             </div>
             
             <div class="action-section">
                 <button id="select-directory-btn" class="primary-btn">
                     <i class="fas fa-folder-open"></i>
-                    Organizar Diretório
+                    Organize Directory
                 </button>
             </div>
             
             <div class="features-section">
                 <div class="feature-item">
                     <i class="fas fa-brain"></i>
-                    <span>Organização por IA</span>
+                    <span>AI-powered Organization</span>
                 </div>
                 <div class="feature-item">
                     <i class="fas fa-calendar-alt"></i>
-                    <span>Organização por Data</span>
+                    <span>Date-based Organization</span>
                 </div>
                 <div class="feature-item">
                     <i class="fas fa-file-alt"></i>
-                    <span>Organização por Tipo</span>
+                    <span>Type-based Organization</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Tela 2: Seleção do Tipo de Organização -->
+    <!-- Screen 2: Organization Mode Selection -->
     <div id="mode-selection-screen" class="screen">
         <div class="mode-container">
             <div class="header">
                 <button class="back-btn" onclick="showScreen('welcome-screen')">
                     <i class="fas fa-arrow-left"></i>
                 </button>
-                <h2>Escolha o Tipo de Organização</h2>
+                <h2>Choose Organization Type</h2>
             </div>
             
             <div class="selected-path">
@@ -63,7 +63,7 @@
                     </div>
                     <div class="mode-content">
                         <h3>By Content (AI-powered)</h3>
-                        <p>Organiza arquivos usando inteligência artificial para analisar o conteúdo e criar uma estrutura inteligente</p>
+                        <p>Organize files using artificial intelligence to analyze content and create an intelligent structure</p>
                     </div>
                     <div class="mode-check">
                         <i class="fas fa-check"></i>
@@ -76,7 +76,7 @@
                     </div>
                     <div class="mode-content">
                         <h3>By Date</h3>
-                        <p>Organiza arquivos por data de modificação, criando pastas por ano e mês</p>
+                        <p>Organize files by modification date, creating folders by year and month</p>
                     </div>
                     <div class="mode-check">
                         <i class="fas fa-check"></i>
@@ -89,7 +89,7 @@
                     </div>
                     <div class="mode-content">
                         <h3>By Type</h3>
-                        <p>Organiza arquivos por tipo de extensão, separando em categorias como imagens, documentos, etc.</p>
+                        <p>Organize files by extension type, separating into categories like images, documents, etc.</p>
                     </div>
                     <div class="mode-check">
                         <i class="fas fa-check"></i>
@@ -99,30 +99,30 @@
             
             <div class="mode-actions">
                 <button id="continue-btn" class="primary-btn" disabled>
-                    Continuar
+                    Continue
                     <i class="fas fa-arrow-right"></i>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Tela 3: Revisão e Confirmação -->
+    <!-- Screen 3: Review and Confirmation -->
     <div id="review-screen" class="screen">
         <div class="review-container">
             <div class="header">
                 <button class="back-btn" onclick="showScreen('mode-selection-screen')">
                     <i class="fas fa-arrow-left"></i>
                 </button>
-                <h2>Revisar Organização</h2>
+                <h2>Review Organization</h2>
             </div>
             
             <div class="review-content">
                             <div class="comparison-section">
                 <div class="current-structure">
-                    <h3>Estrutura Atual</h3>
+                    <h3>Current Structure</h3>
                     <div class="os-indicator" id="current-os-indicator">
                         <i class="fas fa-desktop"></i>
-                        <span>Sistema: <span id="current-os-text">Detectando...</span></span>
+                        <span>System: <span id="current-os-text">Detecting...</span></span>
                     </div>
                     <div class="tree-container">
                         <div id="current-tree" class="tree-view"></div>
@@ -134,10 +134,10 @@
                 </div>
                 
                 <div class="proposed-structure">
-                    <h3>Estrutura Proposta</h3>
+                    <h3>Proposed Structure</h3>
                     <div class="os-indicator" id="proposed-os-indicator">
                         <i class="fas fa-desktop"></i>
-                        <span>Sistema: <span id="proposed-os-text">Detectando...</span></span>
+                        <span>System: <span id="proposed-os-text">Detecting...</span></span>
                     </div>
                     <div class="tree-container">
                         <div id="proposed-tree" class="tree-view"></div>
@@ -146,7 +146,7 @@
             </div>
                 
                 <div class="mode-changer">
-                    <label for="mode-select">Alterar modo:</label>
+                    <label for="mode-select">Change mode:</label>
                     <select id="mode-select">
                         <option value="ai_content">By Content (AI-powered)</option>
                         <option value="date">By Date</option>
@@ -154,64 +154,64 @@
                     </select>
                     <button id="refresh-btn" class="secondary-btn">
                         <i class="fas fa-sync-alt"></i>
-                        Atualizar
+                        Update
                     </button>
                 </div>
                 
                 <div class="stats-section">
                     <div class="stat-item">
                         <i class="fas fa-folder"></i>
-                        <span>Pastas: <strong id="folder-count">0</strong></span>
+                        <span>Folders: <strong id="folder-count">0</strong></span>
                     </div>
                     <div class="stat-item">
                         <i class="fas fa-file"></i>
-                        <span>Arquivos: <strong id="file-count">0</strong></span>
+                        <span>Files: <strong id="file-count">0</strong></span>
                     </div>
                     <div class="stat-item">
                         <i class="fas fa-hdd"></i>
-                        <span>Tamanho: <strong id="total-size">0 B</strong></span>
+                        <span>Size: <strong id="total-size">0 B</strong></span>
                     </div>
                 </div>
                 
                 <div class="review-actions">
                     <button id="cancel-btn" class="danger-btn">
                         <i class="fas fa-times"></i>
-                        Cancelar
+                        Cancel
                     </button>
                     <button id="proceed-btn" class="primary-btn">
                         <i class="fas fa-check"></i>
-                        Continuar com as Mudanças
+                        Continue with Changes
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Tela 4: Confirmação de Sucesso -->
+    <!-- Screen 4: Success Confirmation -->
     <div id="success-screen" class="screen">
         <div class="success-container">
             <div class="success-icon">
                 <i class="fas fa-check-circle"></i>
             </div>
             
-            <h2>Organização Concluída com Sucesso!</h2>
+            <h2>Organization Completed Successfully!</h2>
             
             <div class="success-details">
-                <p>Seus arquivos foram organizados conforme solicitado.</p>
+                <p>Your files have been organized as requested.</p>
                 <div class="output-info">
                     <i class="fas fa-folder-open"></i>
-                    <span>Arquivos organizados em: <strong id="output-path-text"></strong></span>
+                    <span>Files organized in: <strong id="output-path-text"></strong></span>
                 </div>
             </div>
             
             <div class="success-actions">
                 <button id="new-organization-btn" class="primary-btn">
                     <i class="fas fa-plus"></i>
-                    Nova Organização
+                    New Organization
                 </button>
                 <button id="open-folder-btn" class="secondary-btn">
                     <i class="fas fa-external-link-alt"></i>
-                    Abrir Pasta
+                    Open Folder
                 </button>
             </div>
         </div>
@@ -221,7 +221,7 @@
     <div id="loading-overlay" class="loading-overlay hidden">
         <div class="loading-content">
             <div class="spinner"></div>
-            <p id="loading-text">Processando...</p>
+            <p id="loading-text">Processing...</p>
             <div class="progress-container hidden" id="progress-container">
                 <div class="progress-bar">
                     <div class="progress-fill" id="progress-fill"></div>

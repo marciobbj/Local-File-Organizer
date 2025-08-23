@@ -1,4 +1,4 @@
-// Estado global da aplicação
+// Global application state
 let appState = {
     selectedDirectory: null,
     selectedMode: null,
@@ -36,7 +36,7 @@ const elements = {
     loadingOverlay: document.getElementById('loading-overlay')
 };
 
-// Inicialização da aplicação
+// Application initialization
 document.addEventListener('DOMContentLoaded', () => {
     initializeEventListeners();
     showScreen('welcome-screen');
@@ -44,37 +44,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Inicializar event listeners
 function initializeEventListeners() {
-    // Botão de seleção de diretório
+    // Directory selection button
     elements.buttons.selectDirectory.addEventListener('click', handleSelectDirectory);
     
-    // Opções de modo
+    // Mode options
     elements.modeOptions.forEach(option => {
         option.addEventListener('click', () => handleModeSelection(option));
     });
     
-    // Botão continuar
+    // Continue button
     elements.buttons.continue.addEventListener('click', handleContinue);
     
-    // Botão refresh
+    // Refresh button
     elements.buttons.refresh.addEventListener('click', handleRefresh);
     
-    // Botão cancelar
+    // Cancel button
     elements.buttons.cancel.addEventListener('click', handleCancel);
     
-    // Botão prosseguir
+    // Proceed button
     elements.buttons.proceed.addEventListener('click', handleProceed);
     
-    // Botão nova organização
+    // New organization button
     elements.buttons.newOrganization.addEventListener('click', handleNewOrganization);
     
-    // Botão abrir pasta
+    // Open folder button
     elements.buttons.openFolder.addEventListener('click', handleOpenFolder);
     
-    // Mudança de modo na tela de revisão
+    // Mode change in review screen
     elements.modeSelect.addEventListener('change', handleModeChange);
 }
 
-// Função para mostrar telas
+// Function to show screens
 function showScreen(screenId) {
     // Esconder todas as telas
     Object.values(elements.screens).forEach(screen => {
@@ -88,10 +88,10 @@ function showScreen(screenId) {
     }
 }
 
-// Manipular seleção de diretório
+// Handle directory selection
 async function handleSelectDirectory() {
     try {
-        showLoading('Selecionando diretório...');
+        showLoading('Selecting directory...');
         
         const selectedPath = await window.electronAPI.selectDirectory();
         
@@ -99,7 +99,7 @@ async function handleSelectDirectory() {
             appState.selectedDirectory = selectedPath;
             elements.displays.selectedPath.textContent = selectedPath;
             
-            // Gerar árvore atual
+            // Generate current tree
             await generateCurrentTree();
             
             hideLoading();
@@ -109,54 +109,54 @@ async function handleSelectDirectory() {
         }
     } catch (error) {
         hideLoading();
-        showError('Erro ao selecionar diretório: ' + error.message);
+        showError('Error selecting directory: ' + error.message);
     }
 }
 
-// Manipular seleção de modo
+// Handle mode selection
 function handleModeSelection(selectedOption) {
-    // Remover seleção anterior
+    // Remove previous selection
     elements.modeOptions.forEach(option => {
         option.classList.remove('selected');
     });
     
-    // Selecionar nova opção
+    // Select new option
     selectedOption.classList.add('selected');
     
-    // Atualizar estado
+    // Update state
     appState.selectedMode = selectedOption.dataset.mode;
     
-    // Habilitar botão continuar
+    // Enable continue button
     elements.buttons.continue.disabled = false;
 }
 
-// Manipular continuação para tela de revisão
+// Handle continuation to review screen
 async function handleContinue() {
     if (!appState.selectedMode) {
-        showError('Por favor, selecione um modo de organização.');
+        showError('Please select an organization mode.');
         return;
     }
     
     try {
-        showLoading('Gerando proposta de organização...');
+        showLoading('Generating organization proposal...');
         
-        // Gerar proposta de organização
+        // Generate organization proposal
         await generateProposedTree();
         
         hideLoading();
         showScreen('review-screen');
     } catch (error) {
         hideLoading();
-        showError('Erro ao gerar proposta: ' + error.message);
+        showError('Error generating proposal: ' + error.message);
     }
 }
 
-// Gerar árvore atual
+// Generate current tree
 async function generateCurrentTree() {
     try {
-        showLoading('Escaneando diretório...');
+        showLoading('Scanning directory...');
         
-        // Escanear diretório real
+        // Scan real directory
         const result = await window.electronAPI.scanDirectory({
             dirPath: appState.selectedDirectory
         });
@@ -167,24 +167,24 @@ async function generateCurrentTree() {
             appState.currentTree = result.tree;
             renderTree(elements.displays.currentTree, result.tree, 'current');
             
-            // Atualizar indicador de OS e estatísticas
+            // Update OS indicator and statistics
             updateOSIndicator('current', result.tree.os);
             updateStats(result.tree);
         } else {
-            throw new Error(result.error || 'Erro desconhecido');
+            throw new Error(result.error || 'Unknown error');
         }
     } catch (error) {
         hideLoading();
-        console.error('Erro ao gerar árvore atual:', error);
-        appState.currentTree = { error: 'Erro ao carregar estrutura atual: ' + error.message };
+        console.error('Error generating current tree:', error);
+        appState.currentTree = { error: 'Error loading current structure: ' + error.message };
         renderTree(elements.displays.currentTree, appState.currentTree, 'current');
     }
 }
 
-// Gerar árvore proposta
+// Generate proposed tree
 async function generateProposedTree() {
     try {
-        showLoading('Gerando estrutura organizada...');
+        showLoading('Generating organized structure...');
         
         const outputPath = generateOutputPath();
         appState.outputPath = outputPath;
@@ -203,21 +203,21 @@ async function generateProposedTree() {
             appState.proposedTree = result.tree;
             renderTree(elements.displays.proposedTree, result.tree, 'proposed');
             
-            // Atualizar indicador de OS e estatísticas
+            // Update OS indicator and statistics
             updateOSIndicator('proposed', result.tree.os);
             updateStats(result.tree);
         } else {
-            throw new Error(result.error || 'Erro desconhecido');
+            throw new Error(result.error || 'Unknown error');
         }
     } catch (error) {
         hideLoading();
-        console.error('Erro ao gerar árvore proposta:', error);
-        appState.proposedTree = { error: 'Erro ao gerar proposta: ' + error.message };
+        console.error('Error generating proposed tree:', error);
+        appState.proposedTree = { error: 'Error generating proposal: ' + error.message };
         renderTree(elements.displays.proposedTree, appState.proposedTree, 'proposed');
     }
 }
 
-// Gerar caminho de saída
+// Generate output path
 function generateOutputPath() {
     const inputDir = appState.selectedDirectory;
     const parentDir = inputDir.substring(0, inputDir.lastIndexOf('/') || inputDir.lastIndexOf('\\'));
@@ -235,7 +235,7 @@ function detectOS() {
 
 
 
-// Renderizar árvore
+// Render tree
 function renderTree(container, treeData, type) {
     if (treeData.error) {
         container.innerHTML = `<div class="error">${treeData.error}</div>`;
@@ -248,9 +248,9 @@ function renderTree(container, treeData, type) {
     const osClass = os !== 'unknown' ? os : 'macos'; // Fallback para macOS
     
     if (type === 'current') {
-        container.innerHTML = `<div class="tree-item folder ${osClass}">📁 ${treeData.name || 'Diretório'}</div>`;
+        container.innerHTML = `<div class="tree-item folder ${osClass}">📁 ${treeData.name || 'Directory'}</div>`;
     } else {
-        container.innerHTML = `<div class="tree-item folder ${osClass}">📁 ${treeData.name || 'Diretório Organizado'}</div>`;
+        container.innerHTML = `<div class="tree-item folder ${osClass}">📁 ${treeData.name || 'Organized Directory'}</div>`;
     }
     
     if (treeData.children) {
@@ -258,7 +258,7 @@ function renderTree(container, treeData, type) {
     }
 }
 
-// Renderizar filhos da árvore
+// Render tree children
 function renderTreeChildren(container, children, level) {
     children.forEach((child, index) => {
         const isLast = index === children.length - 1;
@@ -270,7 +270,7 @@ function renderTreeChildren(container, children, level) {
         const treeItem = document.createElement('div');
         treeItem.className = `tree-item ${child.type} ${osClass}`;
         
-        // Adicionar informações extras para arquivos
+        // Add extra information for files
         let extraInfo = '';
         if (child.type === 'file') {
             if (child.size) {
@@ -293,18 +293,18 @@ function renderTreeChildren(container, children, level) {
 // Manipular refresh
 async function handleRefresh() {
     try {
-        showLoading('Atualizando proposta...');
+        showLoading('Updating proposal...');
         
-        // Atualizar modo selecionado
+        // Update selected mode
         appState.selectedMode = elements.modeSelect.value;
         
-        // Regenerar árvore proposta com novo modo
+        // Regenerate proposed tree with new mode
         await generateProposedTree();
         
         hideLoading();
     } catch (error) {
         hideLoading();
-        showError('Erro ao atualizar: ' + error.message);
+        showError('Error updating: ' + error.message);
     }
 }
 
@@ -317,13 +317,13 @@ function handleCancel() {
 // Manipular prosseguimento
 async function handleProceed() {
     try {
-        showLoading('Executando organização...');
+        showLoading('Executing organization...');
         showProgress();
         
-        // Simular progresso durante a organização
+        // Simulate progress during organization
         simulateProgress();
         
-        // Executar organização real
+        // Execute real organization
         const result = await window.electronAPI.executeOrganization({
             inputPath: appState.selectedDirectory,
             outputPath: appState.outputPath,
@@ -335,9 +335,9 @@ async function handleProceed() {
             hideProgress();
             elements.displays.outputPath.textContent = appState.outputPath;
             
-            // Mostrar informações adicionais sobre a organização
+            // Show additional information about the organization
             if (result.processedFiles !== undefined && result.totalFiles !== undefined) {
-                console.log(`Organização concluída: ${result.processedFiles} de ${result.totalFiles} arquivos processados`);
+                console.log(`Organization completed: ${result.processedFiles} of ${result.totalFiles} files processed`);
             }
             
             showScreen('success-screen');
@@ -347,11 +347,11 @@ async function handleProceed() {
     } catch (error) {
         hideLoading();
         hideProgress();
-        showError('Erro ao executar organização: ' + error.message);
+        showError('Error executing organization: ' + error.message);
     }
 }
 
-// Manipular nova organização
+        // Handle new organization
 function handleNewOrganization() {
     resetAppState();
     showScreen('welcome-screen');
@@ -363,12 +363,12 @@ function handleOpenFolder() {
     console.log('Abrindo pasta:', appState.outputPath);
 }
 
-// Manipular mudança de modo
+        // Handle mode change
 function handleModeChange() {
     appState.selectedMode = elements.modeSelect.value;
 }
 
-// Resetar estado da aplicação
+// Reset application state
 function resetAppState() {
     appState = {
         selectedDirectory: null,
@@ -384,10 +384,10 @@ function resetAppState() {
     elements.displays.proposedTree.innerHTML = '';
     elements.buttons.continue.disabled = true;
     
-    // Resetar estatísticas
+            // Reset statistics
     updateStats({ children: [] });
     
-    // Resetar seleções
+            // Reset selections
     elements.modeOptions.forEach(option => {
         option.classList.remove('selected');
     });
@@ -399,7 +399,7 @@ function resetAppState() {
 }
 
 // Mostrar loading
-function showLoading(message = 'Processando...') {
+    function showLoading(message = 'Processing...') {
     elements.displays.loadingText.textContent = message;
     elements.loadingOverlay.classList.remove('hidden');
     hideProgress(); // Esconder barra de progresso ao mostrar loading
@@ -426,7 +426,7 @@ function hideProgress() {
     }
 }
 
-// Simular progresso durante a organização
+        // Simulate progress during organization
 function simulateProgress() {
     const progressFill = document.getElementById('progress-fill');
     const progressText = document.getElementById('progress-text');
@@ -435,7 +435,7 @@ function simulateProgress() {
         let progress = 0;
         const interval = setInterval(() => {
             progress += Math.random() * 15;
-            if (progress > 90) progress = 90; // Não chegar a 100% até a conclusão
+            if (progress > 90) progress = 90; // Don't reach 100% until completion
             
             progressFill.style.width = progress + '%';
             progressText.textContent = Math.round(progress) + '%';
@@ -473,7 +473,7 @@ function formatDate(date) {
     });
 }
 
-// Calcular estatísticas da árvore
+// Calculate tree statistics
 function calculateStats(tree) {
     let folderCount = 0;
     let fileCount = 0;
@@ -497,7 +497,7 @@ function calculateStats(tree) {
     return { folderCount, fileCount, totalSize };
 }
 
-// Atualizar estatísticas na interface
+        // Update statistics in interface
 function updateStats(tree) {
     const stats = calculateStats(tree);
     
@@ -519,7 +519,7 @@ function updateOSIndicator(type, os) {
         // Remover classes anteriores
         indicator.className = 'os-indicator';
         
-        // Adicionar classe específica do OS
+        // Add OS-specific class
         if (os && os !== 'unknown') {
             indicator.classList.add(os);
             text.textContent = os.charAt(0).toUpperCase() + os.slice(1);
@@ -529,6 +529,6 @@ function updateOSIndicator(type, os) {
     }
 }
 
-// Função global para navegação entre telas (usada no HTML)
+// Global function for navigation between screens (used in HTML)
 window.showScreen = showScreen;
 
