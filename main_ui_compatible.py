@@ -9,6 +9,14 @@ import json
 import argparse
 import platform
 from pathlib import Path
+from PIL import Image
+import torch
+from transformers import (
+    AutoTokenizer, 
+    AutoModelForCausalLM,
+    AutoProcessor,
+    AutoModelForImageTextToText
+)
 
 # Add current directory to Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -26,6 +34,8 @@ from data_processing_common import (
     process_files_by_date,
     process_files_by_type,
 )
+
+from file_type_config import file_type_manager, FileCategory
 
 def detect_operating_system():
     """Detect the current operating system."""
@@ -52,14 +62,6 @@ def ensure_nltk_data():
 def initialize_models():
     """Initialize the AI models using Hugging Face Transformers."""
     try:
-        from PIL import Image
-        import torch
-        from transformers import (
-            AutoTokenizer, 
-            AutoModelForCausalLM,
-            AutoProcessor,
-            AutoModelForImageTextToText
-        )
         
         text_model = None
         image_model = None
@@ -149,83 +151,27 @@ def process_files_with_ai(file_paths, output_path, text_model, text_tokenizer, i
             file_name = os.path.basename(file_path)
             file_ext = os.path.splitext(file_name)[1].lower()
             
-            # Analyze based on file type
-            if file_ext in ['.txt', '.md', '.py', '.js', '.html', '.css', '.json', '.xml', '.csv', '.log', '.ini', '.conf', '.cfg', '.yml', '.yaml']:
-                # Text files
-                try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                    description = analyze_text_with_ai(content, text_model, text_tokenizer)
-                except:
-                    description = "Text document"
+            # Get file type rule from the manager
+            rule = file_type_manager.get_rule_for_extension(file_ext)
+            
+            if rule:
+                # Use the rule to determine category and description
+                category = rule.category.value
+                description = rule.description
                 
-                # Create category based on content analysis
-                if any(word in description.lower() for word in ['code', 'script', 'program', 'function', 'class', 'import']):
-                    category = 'Code'
-                elif any(word in description.lower() for word in ['data', 'table', 'spreadsheet', 'database', 'query']):
-                    category = 'Data'
-                elif any(word in description.lower() for word in ['config', 'settings', 'preferences']):
-                    category = 'Configuration'
-                else:
-                    category = 'Documents'
-                    
-            elif file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.svg', '.webp', '.heic', '.heif', '.raw', '.cr2', '.nef', '.arw']:
-                # Image files
-                description = analyze_image_with_ai(file_path, image_model, image_processor)
-                category = 'Images'
-                
-            elif file_ext in ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.mkv', '.webm', '.m4v', '.3gp', '.ogv', '.ts']:
-                description = "Video file"
-                category = 'Videos'
-                
-            elif file_ext in ['.mp3', '.wav', '.flac', '.aac', '.ogg', '.wma', '.m4a', '.aiff', '.alac', '.opus']:
-                description = "Audio file"
-                category = 'Audio'
-                
-            elif file_ext in ['.zip', '.rar', '.7z', '.tar', '.gz', '.bz2', '.xz', '.lzma', '.dmg', '.pkg']:
-                description = "Archive file"
-                category = 'Archives'
-                
-            elif file_ext in ['.pdf', '.doc', '.docx', '.ppt', '.pptx', '.xls', '.xlsx', '.rtf', '.odt', '.odp', '.ods']:
-                description = "Document file"
-                category = 'Documents'
-                
-            elif file_ext in ['.pages', '.numbers', '.keynote']:
-                # macOS iWork files
-                description = "iWork document"
-                category = 'iWork'
-                
-            elif file_ext in ['.psd', '.ai', '.eps', '.indd', '.sketch', '.fig', '.xd', '.afdesign']:
-                # Design and creative files
-                description = "Design file"
-                category = 'Design'
-                
-            elif file_ext in ['.db', '.sqlite', '.sql', '.mdb', '.accdb', '.xlsx', '.csv', '.tsv', '.parquet']:
-                # Database and data files
-                description = "Database or data file"
-                category = 'Data'
-                
-            elif file_ext in ['.exe', '.app', '.dmg', '.pkg', '.deb', '.rpm', '.msi', '.apk']:
-                # Applications and installers
-                description = "Application or installer"
-                category = 'Applications'
-                
-            elif file_ext in ['.iso', '.vmdk', '.vhd', '.ova', '.ovf']:
-                # Virtual machine and disk images
-                description = "Virtual machine or disk image"
-                category = 'Virtual Machines'
-                
-            elif file_ext in ['.bak', '.tmp', '.temp', '.cache', '.log', '.old']:
-                # Backup and temporary files
-                description = "Backup or temporary file"
-                category = 'System Files'
-                
-            elif file_ext in ['.font', '.ttf', '.otf', '.woff', '.woff2', '.eot']:
-                # Font files
-                description = "Font file"
-                category = 'Fonts'
-                
+                # Handle AI analysis if required
+                if rule.requires_ai_analysis:
+                    if rule.ai_model_type == 'text':
+                        try:
+                            with open(file_path, 'r', encoding='utf-8') as file:
+                                content = file.read()
+                            description = analyze_text_with_ai(content, text_model, text_tokenizer)
+                        except:
+                            description = rule.description
+                    elif rule.ai_model_type == 'image':
+                        description = analyze_image_with_ai(file_path, image_model, image_processor)
             else:
+                # Default fallback for unknown extensions
                 description = "Other file"
                 category = 'Other'
             
