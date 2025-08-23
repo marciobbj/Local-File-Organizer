@@ -256,13 +256,30 @@ def simulate_directory_tree(operations, output_path):
         
         if op_type in ['move', 'hardlink', 'symlink']:
             dest_path = op['destination']
+            source_path = op['source']
             rel_path = os.path.relpath(dest_path, output_path)
             dir_path = os.path.dirname(rel_path)
             
             if dir_path not in tree:
                 tree[dir_path] = []
             
-            tree[dir_path].append(os.path.basename(dest_path))
+            # Include file info with size
+            file_info = {
+                'name': os.path.basename(dest_path),
+                'source': source_path
+            }
+            
+            # Get file size from original file
+            try:
+                if os.path.exists(source_path):
+                    file_info['size'] = os.path.getsize(source_path)
+                    file_info['modified'] = os.path.getmtime(source_path)
+                else:
+                    file_info['size'] = 0
+            except OSError:
+                file_info['size'] = 0
+                
+            tree[dir_path].append(file_info)
     
     return tree
 
@@ -274,8 +291,11 @@ def print_simulated_tree(tree):
         else:
             print(f"{directory}/:")
         
-        for file in sorted(files):
-            print(f"  {file}")
+        for file_info in sorted(files, key=lambda x: x['name'] if isinstance(x, dict) else x):
+            if isinstance(file_info, dict):
+                print(f"  {file_info['name']}")
+            else:
+                print(f"  {file_info}")
 
 def main():
     parser = argparse.ArgumentParser(description='File Organizer CLI')
@@ -330,12 +350,22 @@ def main():
         for directory, files in tree.items():
             if directory == '.':
                 # Root level files
-                for file in files:
-                    ui_tree['children'].append({
-                        'name': file,
-                        'type': 'file',
-                        'os': detected_os
-                    })
+                for file_info in files:
+                    if isinstance(file_info, dict):
+                        ui_tree['children'].append({
+                            'name': file_info['name'],
+                            'type': 'file',
+                            'os': detected_os,
+                            'size': file_info.get('size', 0),
+                            'modified': file_info.get('modified')
+                        })
+                    else:
+                        # Backward compatibility for old format
+                        ui_tree['children'].append({
+                            'name': file_info,
+                            'type': 'file',
+                            'os': detected_os
+                        })
             else:
                 # Directory
                 dir_node = {
@@ -345,12 +375,22 @@ def main():
                     'children': []
                 }
                 
-                for file in files:
-                    dir_node['children'].append({
-                        'name': file,
-                        'type': 'file',
-                        'os': detected_os
-                    })
+                for file_info in files:
+                    if isinstance(file_info, dict):
+                        dir_node['children'].append({
+                            'name': file_info['name'],
+                            'type': 'file',
+                            'os': detected_os,
+                            'size': file_info.get('size', 0),
+                            'modified': file_info.get('modified')
+                        })
+                    else:
+                        # Backward compatibility for old format
+                        dir_node['children'].append({
+                            'name': file_info,
+                            'type': 'file',
+                            'os': detected_os
+                        })
                 
                 ui_tree['children'].append(dir_node)
         
