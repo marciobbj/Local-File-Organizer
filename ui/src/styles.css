@@ -10,8 +10,9 @@ body {
     background: #0a0a0a;
     min-height: 100vh;
     color: #e0e0e0;
-    overflow-x: hidden;
+    overflow-x: auto;
     line-height: 1.6;
+    min-width: 1200px;
 }
 
 /* Controle de telas */
@@ -19,6 +20,7 @@ body {
     display: none;
     min-height: 100vh;
     padding: 2rem;
+    min-width: 1200px;
 }
 
 .screen.active {
@@ -31,6 +33,7 @@ body {
     margin: 0 auto;
     text-align: center;
     padding: 4rem 2rem;
+    min-width: 760px;
 }
 
 .logo-section {
@@ -132,6 +135,7 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 3rem 2rem;
+    min-width: 900px;
 }
 
 .header {
@@ -188,6 +192,7 @@ body {
     margin-bottom: 3rem;
     justify-content: center;
     flex-wrap: nowrap;
+    align-items: stretch;
 }
 
 .mode-option {
@@ -204,7 +209,7 @@ body {
     position: relative;
     overflow: hidden;
     flex: 1;
-    min-width: 0;
+    min-width: 250px;
     text-align: center;
 }
 
@@ -377,6 +382,7 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 3rem 2rem;
+    min-width: 760px;
 }
 
 .review-content {
@@ -669,6 +675,7 @@ body {
     margin: 0 auto;
     text-align: center;
     padding: 4rem 2rem;
+    min-width: 560px;
 }
 
 .success-icon {
@@ -813,13 +820,20 @@ body {
 }
 
 /* Responsividade */
-@media (max-width: 768px) {
+@media (max-width: 800px) {
+    body {
+        min-width: 900px;
+        overflow-x: auto;
+    }
+    
     .screen {
         padding: 1rem;
+        min-width: 900px;
     }
     
     .welcome-container {
         padding: 2rem 1rem;
+        min-width: 760px;
     }
     
     .app-title {
@@ -836,14 +850,16 @@ body {
     }
     
     .mode-options {
-        flex-direction: column;
-        align-items: center;
-        flex-wrap: wrap;
+        flex-direction: row;
+        align-items: stretch;
+        flex-wrap: nowrap;
+        gap: 1rem;
     }
     
     .mode-option {
-        flex: none;
-        min-width: 280px;
+        flex: 1;
+        min-width: 200px;
+        padding: 1.5rem;
     }
     
     .comparison-section {
