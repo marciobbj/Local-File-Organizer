@@ -39,6 +39,7 @@ const elements = {
 // Application initialization
 document.addEventListener('DOMContentLoaded', () => {
     initializeEventListeners();
+    initializeProgressListener();
     showScreen('welcome-screen');
 });
 
@@ -72,6 +73,17 @@ function initializeEventListeners() {
     
     // Mode change in review screen
     elements.modeSelect.addEventListener('change', handleModeChange);
+}
+
+// Initialize progress listener
+function initializeProgressListener() {
+    if (window.electronAPI && window.electronAPI.onOrganizationProgress) {
+        window.electronAPI.onOrganizationProgress((event, data) => {
+            if (data && typeof data.progress === 'number') {
+                updateProgress(data.progress, data.message);
+            }
+        });
+    }
 }
 
 // Function to show screens
@@ -426,19 +438,38 @@ function hideLoading() {
     elements.loadingOverlay.classList.add('hidden');
 }
 
-// Mostrar barra de progresso
+// Show progress bar
 function showProgress() {
     const progressContainer = document.getElementById('progress-container');
     if (progressContainer) {
         progressContainer.classList.remove('hidden');
+        // Reset progress
+        updateProgress(0, 'Starting...');
     }
 }
 
-// Esconder barra de progresso
+// Hide progress bar
 function hideProgress() {
     const progressContainer = document.getElementById('progress-container');
     if (progressContainer) {
         progressContainer.classList.add('hidden');
+    }
+}
+
+// Update progress bar
+function updateProgress(progress, message) {
+    const progressFill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    
+    if (progressFill && progressText) {
+        progressFill.style.width = progress + '%';
+        progressText.textContent = Math.round(progress) + '%';
+        
+        // Update loading text if available
+        const loadingText = document.getElementById('loading-text');
+        if (loadingText && message) {
+            loadingText.textContent = message;
+        }
     }
 }
 
@@ -521,7 +552,7 @@ function updateOSIndicator(type, os) {
             indicator.classList.add(os);
             text.textContent = os.charAt(0).toUpperCase() + os.slice(1);
         } else {
-            text.textContent = 'Desconhecido';
+            text.textContent = 'Unknown';
         }
     }
 }

@@ -5,5 +5,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   scanDirectory: (params) => ipcRenderer.invoke('scan-directory', params),
   organizeFiles: (params) => ipcRenderer.invoke('organize-files', params),
   executeOrganization: (params) => ipcRenderer.invoke('execute-organization', params),
-  openFolder: (params) => ipcRenderer.invoke('open-folder', params)
+  openFolder: (params) => ipcRenderer.invoke('open-folder', params),
+  onOrganizationProgress: (callback) => ipcRenderer.on('organization-progress', callback)
 });

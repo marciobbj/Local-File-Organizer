@@ -281,10 +281,21 @@ ipcMain.handle('execute-organization', async (event, { inputPath, outputPath, mo
       
       let stdout = '';
       let stderr = '';
+      let progress = 0;
+      
+      // Send initial progress
+      mainWindow.webContents.send('organization-progress', { progress: 0, message: 'Starting organization...' });
       
       pythonProcess.stdout.on('data', (data) => {
         stdout += data.toString();
         console.log('Python stdout:', data.toString());
+        
+        // Update progress based on output
+        progress = Math.min(progress + 10, 90);
+        mainWindow.webContents.send('organization-progress', { 
+          progress: progress, 
+          message: 'Processing files...' 
+        });
       });
       
       pythonProcess.stderr.on('data', (data) => {
@@ -294,6 +305,12 @@ ipcMain.handle('execute-organization', async (event, { inputPath, outputPath, mo
       
       pythonProcess.on('close', (code) => {
         console.log(`Python process finished with code: ${code}`);
+        
+        // Send completion progress
+        mainWindow.webContents.send('organization-progress', { 
+          progress: 100, 
+          message: 'Organization completed!' 
+        });
         
         if (code === 0) {
           resolve({
