@@ -540,10 +540,24 @@ function formatFileSize(bytes) {
 
 // Formatar data
 function formatDate(date) {
+    if (!date) {
+        return 'Unknown';
+    }
+    
+    // Convert to Date object if needed
     if (typeof date === 'string') {
         date = new Date(date);
+    } else if (typeof date === 'number') {
+        // Unix timestamp (in seconds) - convert to milliseconds
+        date = new Date(date * 1000);
     }
-            return date.toLocaleDateString('en-US', {
+    
+    // Validate date object
+    if (!(date instanceof Date) || isNaN(date.getTime())) {
+        return 'Invalid Date';
+    }
+    
+    return date.toLocaleDateString('en-US', {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
