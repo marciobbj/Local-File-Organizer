@@ -52,6 +52,7 @@ function scanDirectory(dirPath, maxDepth = 3, currentDepth = 0) {
 
     const items = fs.readdirSync(dirPath);
     const children = [];
+    const detectedOS = getOS();
     
     // Limit depth to avoid very large trees
     if (currentDepth < maxDepth) {
@@ -76,7 +77,8 @@ function scanDirectory(dirPath, maxDepth = 3, currentDepth = 0) {
               type: 'file',
               path: fullPath,
               size: stat.size,
-              modified: stat.mtime
+              modified: stat.mtime,
+              os: detectedOS
             });
           }
         } catch (err) {
@@ -99,7 +101,8 @@ function scanDirectory(dirPath, maxDepth = 3, currentDepth = 0) {
       name: path.basename(dirPath),
       type: 'folder',
       path: dirPath,
-      children: children
+      children: children,
+      os: detectedOS
     };
   } catch (err) {
     console.error(`Error scanning directory: ${dirPath}`, err.message);
@@ -134,8 +137,6 @@ ipcMain.handle('scan-directory', async (event, { dirPath }) => {
     try {
       const tree = scanDirectory(dirPath);
       if (tree) {
-        // Add OS information to the tree
-        tree.os = getOS();
         resolve({
           success: true,
           tree: tree,
@@ -157,6 +158,12 @@ ipcMain.handle('organize-files', async (event, { inputPath, outputPath, mode, dr
       console.log('Input directory:', inputPath);
       console.log('Mode:', mode);
       
+      // Send initial progress for structure generation
+      mainWindow.webContents.send('organization-progress', { 
+        progress: 10, 
+        message: 'Initializing structure generation...' 
+      });
+      
       // Execute Python command in dry-run mode to get proposed structure
       const { spawn } = require('child_process');
       
@@ -175,6 +182,12 @@ ipcMain.handle('organize-files', async (event, { inputPath, outputPath, mode, dr
       
       console.log('Executing Python command (dry-run):', pythonCmd, args.join(' '));
       
+      // Send progress for command start
+      mainWindow.webContents.send('organization-progress', { 
+        progress: 20, 
+        message: 'Starting structure analysis...' 
+      });
+      
       const pythonProcess = spawn(pythonCmd, args, {
         cwd: path.join(__dirname, '..', '..'),
         stdio: ['pipe', 'pipe', 'pipe']
@@ -182,10 +195,18 @@ ipcMain.handle('organize-files', async (event, { inputPath, outputPath, mode, dr
       
       let stdout = '';
       let stderr = '';
+      let progress = 30;
       
       pythonProcess.stdout.on('data', (data) => {
         stdout += data.toString();
         console.log('Python stdout:', data.toString());
+        
+        // Update progress during structure generation
+        progress = Math.min(progress + 15, 80);
+        mainWindow.webContents.send('organization-progress', { 
+          progress: progress, 
+          message: 'Analyzing files and generating structure...' 
+        });
       });
       
       pythonProcess.stderr.on('data', (data) => {
@@ -195,6 +216,12 @@ ipcMain.handle('organize-files', async (event, { inputPath, outputPath, mode, dr
       
       pythonProcess.on('close', (code) => {
         console.log(`Python process finished with code: ${code}`);
+        
+        // Send completion progress
+        mainWindow.webContents.send('organization-progress', { 
+          progress: 100, 
+          message: 'Structure generation completed!' 
+        });
         
         if (code === 0) {
           try {

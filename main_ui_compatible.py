@@ -7,6 +7,7 @@ import os
 import sys
 import json
 import argparse
+import platform
 from pathlib import Path
 
 # Add current directory to Python path
@@ -25,6 +26,18 @@ from data_processing_common import (
     process_files_by_date,
     process_files_by_type,
 )
+
+def detect_operating_system():
+    """Detect the current operating system."""
+    system = platform.system().lower()
+    if system == 'darwin':
+        return 'macos'
+    elif system == 'windows':
+        return 'windows'
+    elif system == 'linux':
+        return 'linux'
+    else:
+        return 'unknown'
 
 def ensure_nltk_data():
     """Ensure that NLTK data is downloaded efficiently and quietly."""
@@ -301,11 +314,14 @@ def main():
         # Create tree structure for UI
         tree = simulate_directory_tree(operations, args.output)
         
+        # Detect operating system
+        detected_os = detect_operating_system()
+        
         # Convert to UI-compatible format
         ui_tree = {
             'name': '',
             'type': 'folder',
-            'os': 'unknown',
+            'os': detected_os,
             'children': []
         }
         
@@ -316,14 +332,14 @@ def main():
                     ui_tree['children'].append({
                         'name': file,
                         'type': 'file',
-                        'os': 'unknown'
+                        'os': detected_os
                     })
             else:
                 # Directory
                 dir_node = {
                     'name': directory,
                     'type': 'folder',
-                    'os': 'unknown',
+                    'os': detected_os,
                     'children': []
                 }
                 
@@ -331,7 +347,7 @@ def main():
                     dir_node['children'].append({
                         'name': file,
                         'type': 'file',
-                        'os': 'unknown'
+                        'os': detected_os
                     })
                 
                 ui_tree['children'].append(dir_node)

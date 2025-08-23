@@ -197,6 +197,7 @@ async function generateCurrentTree() {
 async function generateProposedTree() {
     try {
         showLoading('Generating organized structure...');
+        showProgress();
         
         const outputPath = generateOutputPath();
         appState.outputPath = outputPath;
@@ -210,6 +211,7 @@ async function generateProposedTree() {
         });
         
         hideLoading();
+        hideProgress();
         
         if (result.success) {
             appState.proposedTree = result.tree;
@@ -223,6 +225,7 @@ async function generateProposedTree() {
         }
     } catch (error) {
         hideLoading();
+        hideProgress();
         console.error('Error generating proposed tree:', error);
         appState.proposedTree = { error: 'Error generating proposal: ' + error.message };
         renderTree(elements.displays.proposedTree, appState.proposedTree, 'proposed');
