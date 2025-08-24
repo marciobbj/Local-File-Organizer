@@ -10,13 +10,25 @@ import argparse
 import platform
 from pathlib import Path
 from PIL import Image
-import torch
-from transformers import (
-    AutoTokenizer, 
-    AutoModelForCausalLM,
-    AutoProcessor,
-    AutoModelForImageTextToText
-)
+
+# Optional torch import for AI functionality
+try:
+    import torch
+    TORCH_AVAILABLE = True
+except ImportError:
+    TORCH_AVAILABLE = False
+
+# Optional transformers import for AI functionality
+try:
+    from transformers import (
+        AutoTokenizer, 
+        AutoModelForCausalLM,
+        AutoProcessor,
+        AutoModelForImageTextToText
+    )
+    TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    TRANSFORMERS_AVAILABLE = False
 
 # Add current directory to Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -36,6 +48,7 @@ from data_processing_common import (
 )
 
 from file_type_config import file_type_manager, FileCategory
+from content_based_categorization import categorize_by_content
 
 def detect_operating_system():
     """Detect the current operating system."""
@@ -61,6 +74,10 @@ def ensure_nltk_data():
 
 def initialize_models():
     """Initialize the AI models using Hugging Face Transformers."""
+    if not TRANSFORMERS_AVAILABLE:
+        print("Transformers not available - AI models cannot be loaded")
+        return None, None, None, None
+    
     try:
         
         text_model = None
@@ -99,6 +116,10 @@ def analyze_text_with_ai(text_content, text_model, text_tokenizer, max_length=10
         words = text_content.split()[:20]
         return f"Document containing: {' '.join(words)}"
     
+    if not TORCH_AVAILABLE:
+        words = text_content.split()[:20]
+        return f"Document containing: {' '.join(words)} (AI analysis unavailable - torch not installed)"
+    
     try:
         inputs = text_tokenizer.encode(text_content[:500], return_tensors="pt", truncation=True)
         
@@ -113,6 +134,7 @@ def analyze_text_with_ai(text_content, text_model, text_tokenizer, max_length=10
             )
         
         response = text_tokenizer.decode(outputs[0], skip_special_tokens=True)
+        print(f'text_model response: {response}')
         return response.strip()
     except Exception as e:
         words = text_content.split()[:15]
@@ -122,6 +144,9 @@ def analyze_image_with_ai(image_path, image_model, image_processor, max_length=5
     """Analyze image content using AI to generate a description."""
     if image_model is None or image_processor is None:
         return "Image file"
+    
+    if not TORCH_AVAILABLE:
+        return "Image file (AI analysis unavailable - torch not installed)"
     
     try:
         from PIL import Image
@@ -138,6 +163,7 @@ def analyze_image_with_ai(image_path, image_model, image_processor, max_length=5
             )
         
         caption = image_processor.decode(outputs[0], skip_special_tokens=True)
+        print(f'image_model response: {caption}')
         return caption.strip()
     except Exception as e:
         return "Image file"
@@ -155,21 +181,46 @@ def process_files_with_ai(file_paths, output_path, text_model, text_tokenizer, i
             rule = file_type_manager.get_rule_for_extension(file_ext)
             
             if rule:
-                # Use the rule to determine category and description
-                category = rule.category.value
+                # Start with extension-based category and description
+                extension_category = rule.category.value
                 description = rule.description
                 
-                # Handle AI analysis if required
+                # Handle AI analysis and content-based categorization
                 if rule.requires_ai_analysis:
                     if rule.ai_model_type == 'text':
                         try:
                             with open(file_path, 'r', encoding='utf-8') as file:
                                 content = file.read()
-                            description = analyze_text_with_ai(content, text_model, text_tokenizer)
-                        except:
-                            description = rule.description
+                            
+                            # Get AI description
+                            ai_description = analyze_text_with_ai(content, text_model, text_tokenizer)
+                            
+                            # Use AI-powered content-based categorization
+                            category, enhanced_description, tags, confidence = categorize_by_content(
+                                file_path, content, ai_description, extension_category, text_model, text_tokenizer
+                            )
+                            
+                            # Update description with content analysis and tags
+                            description = enhanced_description
+                            if tags:
+                                description += f" | Tags: {', '.join(tags)}"
+                            
+                        except Exception as e:
+                            # Fallback to extension-based categorization
+                            category = extension_category
+                            description = f"{rule.description} (AI analysis failed: {str(e)})"
+                    
                     elif rule.ai_model_type == 'image':
                         description = analyze_image_with_ai(file_path, image_model, image_processor)
+                        category = extension_category  # Images still use extension-based for now
+                    
+                    else:
+                        category = extension_category
+                        description = rule.description
+                else:
+                    # No AI analysis required, use extension-based
+                    category = extension_category
+                    description = rule.description
             else:
                 # Default fallback for unknown extensions
                 description = "Other file"
